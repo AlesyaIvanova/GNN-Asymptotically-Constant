@@ -24,15 +24,20 @@ class Model(Module):
         self.pool = model_args.pool
 
     def forward(self, x: Tensor, edge_index: Adj) -> Tensor:
-        x = self.get_node_embeddings(x, edge_index)
-        x = self.pool.forward(x)
-        x = self.decoder(x)
-        return F.softmax(x, dim=-1)
-
-    def get_node_embeddings(self, x: Tensor, edge_index: Adj):
         x = self.encoder(x)
         for layer in self.net[:-1]:
             x = layer(x=x, edge_index=edge_index)
             x = F.relu(x)
         x = self.net[-1](x=x, edge_index=edge_index)  # (graph_size, dim)
-        return x
+        x = self.pool.forward(x)
+        x = self.decoder(x)
+        return F.softmax(x, dim=-1)
+
+    def get_node_predictions(self, x: Tensor, edge_index: Adj):
+        x = self.encoder(x)
+        for layer in self.net[:-1]:
+            x = layer(x=x, edge_index=edge_index)
+            x = F.relu(x)
+        x = self.net[-1](x=x, edge_index=edge_index)  # (graph_size, dim)
+        x = self.decoder(x)
+        return F.softmax(x, dim=-1)
