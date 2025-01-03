@@ -49,7 +49,7 @@ class Experiment(object):
         scores = torch.empty(size=(self.out_dim, 0))
         with tqdm.tqdm(total=self.num_graph_samples, file=sys.stdout) as pbar:
             for sample_idx in range(self.num_graph_samples):
-                data = self.dataset.load(graph_size=self.graph_size, in_dim=self.in_dim,
+                data = self.dataset.load(num_nodes=self.graph_size, in_dim=self.in_dim,
                                          seed=self.seed + sample_idx, pos_enc_transform=pos_enc_transform)
                 score = model(data.x.to(device=self.device),
                               edge_index=data.edge_index.to(device=self.device)).detach().cpu()  # (out_dim,)
