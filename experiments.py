@@ -48,10 +48,20 @@ class Experiment(object):
         prefix_str = "Results/Temp"
         scores = torch.empty(size=(self.out_dim, 0))
         node_embeddings = None
+
+        global_x = None
+
         with tqdm.tqdm(total=self.num_graph_samples, file=sys.stdout) as pbar:
             for sample_idx in range(self.num_graph_samples):
                 data = self.dataset.load(num_nodes=self.graph_size, in_dim=self.in_dim,
                                          seed=self.seed + sample_idx, pos_enc_transform=pos_enc_transform)
+                
+                if self.same_node_features_for_all_graph_samples:
+                  if global_x == None:
+                    global_x = data.x.clone()
+                  else:
+                    data.x = global_x.clone()
+
                 score = model(data.x.to(device=self.device),
                               edge_index=data.edge_index.to(device=self.device)).detach().cpu()  # (out_dim,)
                 node_embeddings_for_sample = model.get_node_embeddings(data.x.to(device=self.device),
@@ -64,6 +74,7 @@ class Experiment(object):
                 pbar.update(n=1)
         # (out_dim,), (out_dim,), (num_graph_samples,)
         scores = node_embeddings[0,:,:]
+        print(node_embeddings.shape)
         mean_per_dim = torch.mean(scores, dim=1)  # (out_dim,)
         distance_from_mean = torch.norm(scores - mean_per_dim.unsqueeze(dim=1), dim=0, p=2)  # (num_graph_samples,)
         std_of_distance_from_mean = torch.std(distance_from_mean, dim=0)  # (,)

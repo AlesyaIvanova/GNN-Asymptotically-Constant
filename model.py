@@ -24,7 +24,7 @@ class Model(Module):
         self.pool = model_args.pool
 
     def forward(self, x: Tensor, edge_index: Adj) -> Tensor:
-        x = get_node_embeddings(x, edge_index)
+        x = self.get_node_embeddings(x, edge_index)
         x = self.pool.forward(x)
         x = self.decoder(x)
         return F.softmax(x, dim=-1)
