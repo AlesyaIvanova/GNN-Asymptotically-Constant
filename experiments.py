@@ -49,7 +49,7 @@ class Experiment(object):
         scores = torch.empty(size=(self.out_dim, 0))
         node_embeddings = None
 
-        # global_x = torch.rand(size=(self.in_dim,))
+        global_x = torch.rand(size=(4, self.in_dim,))
         # print(global_x)
 
         with tqdm.tqdm(total=self.num_graph_samples, file=sys.stdout) as pbar:
@@ -59,8 +59,8 @@ class Experiment(object):
                 
                 # if sample_idx < 5:
                 #   print(data.x[0,:])
-                # if self.same_node_features_for_all_graph_samples:
-                #   data.x[0,:] = global_x
+                if self.same_node_features_for_all_graph_samples:
+                  data.x[0:4,:] = global_x
                 #   if global_x == None:
                 #     global_x = data.x.clone()
                 #   else:
@@ -86,7 +86,17 @@ class Experiment(object):
         # node_embeddings_for_node0 = node_embeddings[0,:,:]
         # node_embeddings_mean_per_dim = torch.mean(node_embeddings_for_node0, dim=1)
 
+        print('means += [[', end='')
         for i in range(5):
-          print(torch.mean(node_predictions[i,:,:]).item(), torch.std(node_predictions[i,:,:]).item())
+          print(torch.mean(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < 4 else ''))
+        print(']]')
+
+        print('stds += [[', end='')
+        for i in range(5):
+          print(torch.std(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < 4 else ''))
+        print(']]')
+
+        # for i in range(5):
+        #   print(torch.mean(node_predictions[i,:,:], dim=1), torch.std(node_predictions[i,:,:], dim=1))
 
         return torch.mean(scores, dim=1), torch.std(scores, dim=1), std_of_distance_from_mean
