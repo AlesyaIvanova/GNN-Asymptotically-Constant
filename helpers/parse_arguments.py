@@ -14,7 +14,8 @@ def parse_arguments():
     parser.add_argument("--num_graph_samples", dest="num_graph_samples", default=100, type=int, required=False)
     parser.add_argument('--rw_pos_length', dest='rw_pos_length', type=int, default=0, required=False)
 
-    parser.add_argument('--same_node_features_for_all_graph_samples', dest='same_node_features_for_all_graph_samples', type=bool, default=False, required=False)
+    parser.add_argument('--fix_input_features', dest='fix_input_features', type=int, default=0, required=False)
+    parser.add_argument('--fix_neighbourhood', dest='fix_neighbourhood', type=str, default=None, required=False)
 
     # model
     parser.add_argument("--model_type", dest="model_type", default=ModelType.MEAN_GNN,

@@ -40,6 +40,46 @@ class Experiment(object):
         print(f'Final std_distance={std_distance}')
 
 
+    # def get_neighbourhood(self, start_node, dist):
+    #   pos_enc_transform = AddRandomWalkPE(walk_length=self.rw_pos_length) if self.rw_pos_length > 0 else None
+    #   data = self.dataset.load(num_nodes=self.graph_size, in_dim=self.in_dim,
+    #                                      seed=self.seed_for_fixed_neighbourhood, pos_enc_transform=pos_enc_transform)
+    #   edge_index = data.edge_index
+    #   edges_by_node = {}
+    #   for i in range(edge_index.shape[1]):
+    #     u, v = edge_index[0:i].item(), edge_index[1:i].item()
+    #     if u not in edges_by_node:
+    #       edges_by_node[u] = []
+    #     edges_by_node[u].append(v)
+      
+    #   node_queue = [0]
+
+
+    def set_neighbourhood(self, data, neighbourhood_type):
+      num_nodes_by_neighbourhood_type = {'isolated' : 1, 'edge' : 2, 'two_edges' : 3}
+      num_fixed_nodes = num_nodes_by_neighbourhood_type[neighbourhood_type]
+
+      edge_index = torch.transpose(data.edge_index, 0, 1).tolist()
+      new_edge_index = []
+      for v, u in edge_index:
+        if v >= num_fixed_nodes and u >= num_fixed_nodes:
+          new_edge_index.append([v, u])
+
+      if neighbourhood_type == 'edge':
+        new_edge_index.append([0, 1])
+        new_edge_index.append([1, 0])
+      elif neighbourhood_type == 'two_edges':
+        new_edge_index.append([0, 1])
+        new_edge_index.append([1, 0])
+        new_edge_index.append([1, 2])
+        new_edge_index.append([2, 1])
+            
+      if len(new_edge_index) == 0:
+        data.edge_index = torch.empty(2, 0, dtype=data.edge_index.dtype)
+      else:
+        data.edge_index = torch.transpose(torch.tensor(new_edge_index), 0, 1)
+
+
     def multi_sample_test(self, model: Model) -> Tuple[Tensor, Tensor, Tensor]:
         # load model
         model.eval()
@@ -49,18 +89,26 @@ class Experiment(object):
         scores = torch.empty(size=(self.out_dim, 0))
         node_embeddings = None
 
-        global_x = torch.rand(size=(4, self.in_dim,))
+        global_x = torch.rand(size=(self.graph_size, self.in_dim,))
         # print(global_x)
+        # if self.fix_neighbourhood is not None:
+        #   neighbourhood = None
 
         with tqdm.tqdm(total=self.num_graph_samples, file=sys.stdout) as pbar:
             for sample_idx in range(self.num_graph_samples):
                 data = self.dataset.load(num_nodes=self.graph_size, in_dim=self.in_dim,
                                          seed=self.seed + sample_idx, pos_enc_transform=pos_enc_transform)
                 
+                if self.fix_neighbourhood is not None:
+                  self.set_neighbourhood(data, self.fix_neighbourhood)
+
+                if self.fix_input_features > 0:
+                  data.x[:self.fix_input_features,:] = global_x[:self.fix_input_features,:]
+
                 # if sample_idx < 5:
                 #   print(data.x[0,:])
-                if self.same_node_features_for_all_graph_samples:
-                  data.x[0:4,:] = global_x
+                # if self.same_node_features_for_all_graph_samples:
+                #   data.x[0:4,:] = global_x
                 #   if global_x == None:
                 #     global_x = data.x.clone()
                 #   else:
