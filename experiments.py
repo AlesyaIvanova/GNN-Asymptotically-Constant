@@ -135,13 +135,14 @@ class Experiment(object):
         # node_embeddings_mean_per_dim = torch.mean(node_embeddings_for_node0, dim=1)
 
         print('means += [[', end='')
-        for i in range(5):
-          print(torch.mean(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < 4 else ''))
+        cnt=1
+        for i in range(cnt):
+          print(torch.mean(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < cnt-1 else ''))
         print(']]')
 
         print('stds += [[', end='')
-        for i in range(5):
-          print(torch.std(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < 4 else ''))
+        for i in range(cnt):
+          print(torch.std(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < cnt-1 else ''))
         print(']]')
 
         # for i in range(5):
