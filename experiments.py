@@ -89,7 +89,8 @@ class Experiment(object):
         scores = torch.empty(size=(self.out_dim, 0))
         node_embeddings = None
 
-        global_x = torch.rand(size=(self.graph_size, self.in_dim,))
+        for _ in range(self.seed_for_fixed_nodes + 1):
+          global_x = torch.rand(size=(self.graph_size, self.in_dim,))
         # print(global_x)
         # if self.fix_neighbourhood is not None:
         #   neighbourhood = None

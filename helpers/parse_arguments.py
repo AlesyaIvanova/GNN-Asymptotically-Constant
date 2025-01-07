@@ -16,6 +16,7 @@ def parse_arguments():
 
     parser.add_argument('--fix_input_features', dest='fix_input_features', type=int, default=0, required=False)
     parser.add_argument('--fix_neighbourhood', dest='fix_neighbourhood', type=str, default=None, required=False)
+    parser.add_argument('--seed_for_fixed_nodes', dest='seed_for_fixed_nodes', type=int, default=0, required=False)
 
     # model
     parser.add_argument("--model_type", dest="model_type", default=ModelType.MEAN_GNN,
