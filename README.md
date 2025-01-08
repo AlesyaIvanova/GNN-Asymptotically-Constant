@@ -4,6 +4,7 @@ This repository contains the source code for the Graph Representation Learning c
 
 The codebase is adapted from the repository of **[Almost Surely Asymptotically Constant Graph Neural Networks](https://arxiv.org/abs/2403.03880)** (https://github.com/benfinkelshtein/GNN-Asymptotically-Constant).
 
+The experiment code is available at [Experiments.ipynb](https://github.com/AlesyaIvanova/GNN-Asymptotically-Constant/blob/main/Experiments.ipynb).
 
 ## Installation ##
 To reproduce the results please use Python 3.9, PyTorch version 2.0.0, Cuda 11.8, PyG version 2.3.0, and torchmetrics.
