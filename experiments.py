@@ -39,22 +39,6 @@ class Experiment(object):
         print(f'Final std_of_scores={std_of_scores}')
         print(f'Final std_distance={std_distance}')
 
-
-    # def get_neighbourhood(self, start_node, dist):
-    #   pos_enc_transform = AddRandomWalkPE(walk_length=self.rw_pos_length) if self.rw_pos_length > 0 else None
-    #   data = self.dataset.load(num_nodes=self.graph_size, in_dim=self.in_dim,
-    #                                      seed=self.seed_for_fixed_neighbourhood, pos_enc_transform=pos_enc_transform)
-    #   edge_index = data.edge_index
-    #   edges_by_node = {}
-    #   for i in range(edge_index.shape[1]):
-    #     u, v = edge_index[0:i].item(), edge_index[1:i].item()
-    #     if u not in edges_by_node:
-    #       edges_by_node[u] = []
-    #     edges_by_node[u].append(v)
-      
-    #   node_queue = [0]
-
-
     def set_neighbourhood(self, data, neighbourhood_type):
       num_nodes_by_neighbourhood_type = {'isolated' : 1, 'edge' : 2, 'two_edges' : 3}
       num_fixed_nodes = num_nodes_by_neighbourhood_type[neighbourhood_type]
@@ -90,10 +74,7 @@ class Experiment(object):
         node_embeddings = None
 
         for _ in range(self.seed_for_fixed_nodes + 1):
-          global_x = torch.rand(size=(self.graph_size, self.in_dim,))
-        # print(global_x)
-        # if self.fix_neighbourhood is not None:
-        #   neighbourhood = None
+          global_x = torch.rand(size=(5, self.in_dim,))
 
         with tqdm.tqdm(total=self.num_graph_samples, file=sys.stdout) as pbar:
             for sample_idx in range(self.num_graph_samples):
@@ -106,15 +87,6 @@ class Experiment(object):
                 if self.fix_input_features > 0:
                   data.x[:self.fix_input_features,:] = global_x[:self.fix_input_features,:]
 
-                # if sample_idx < 5:
-                #   print(data.x[0,:])
-                # if self.same_node_features_for_all_graph_samples:
-                #   data.x[0:4,:] = global_x
-                #   if global_x == None:
-                #     global_x = data.x.clone()
-                #   else:
-                #     data.x = global_x.clone()
-
                 score = model(data.x.to(device=self.device),
                               edge_index=data.edge_index.to(device=self.device)).detach().cpu()  # (out_dim,)
                 node_predictions_for_sample = model.get_node_predictions(data.x.to(device=self.device),
@@ -125,28 +97,20 @@ class Experiment(object):
                 # prints
                 pbar.set_description(f'sample: {sample_idx}/{self.num_graph_samples}')
                 pbar.update(n=1)
-        # (out_dim,), (out_dim,), (num_graph_samples,)
-        # scores = node_predictions[0,:,:]
-        # print(node_predictions.shape)
+        
         mean_per_dim = torch.mean(scores, dim=1)  # (out_dim,)
         distance_from_mean = torch.norm(scores - mean_per_dim.unsqueeze(dim=1), dim=0, p=2)  # (num_graph_samples,)
         std_of_distance_from_mean = torch.std(distance_from_mean, dim=0)  # (,)
 
-        # node_embeddings_for_node0 = node_embeddings[0,:,:]
-        # node_embeddings_mean_per_dim = torch.mean(node_embeddings_for_node0, dim=1)
-
-        print('means += [[', end='')
-        cnt=1
+        cnt=5
+        print('predictions_means=[[', end='')
         for i in range(cnt):
           print(torch.mean(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < cnt-1 else ''))
         print(']]')
 
-        print('stds += [[', end='')
+        print('predictions_stds=[[', end='')
         for i in range(cnt):
           print(torch.std(node_predictions[i,:,:], dim=1).numpy().tolist(), end=(', ' if i < cnt-1 else ''))
         print(']]')
-
-        # for i in range(5):
-        #   print(torch.mean(node_predictions[i,:,:], dim=1), torch.std(node_predictions[i,:,:], dim=1))
 
         return torch.mean(scores, dim=1), torch.std(scores, dim=1), std_of_distance_from_mean
